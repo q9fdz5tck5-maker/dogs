@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PupPulse — Trust‑First Puppy Listings</title>
+
+<style>
+:root{
+  --bg1:#070a12;
+  --bg2:#101a33;
+  --glass:rgba(255,255,255,.08);
+  --glass2:rgba(255,255,255,.05);
+  --stroke:rgba(255,255,255,.14);
+  --text:#eef2f7;
+  --muted:#a9b2c3;
+
+  --a1:#7cf6ff;
+  --a2:#ffb86b;
+  --a3:#ff7ad9;
+
+  --radius:18px;
+  --blur:18px;
+
+  --shadow: 0 35px 110px rgba(0,0,0,.55);
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  color:var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  background: radial-gradient(1200px 900px at 18% 12%, var(--bg2), var(--bg1));
+  overflow-x:hidden;
+}
+
+a{ color:inherit; }
+button, input{ font:inherit; }
+
+#sky{
+  position:fixed;
+  inset:0;
+  z-index:0;
+}
+
+.noise{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:1;
+  opacity:.16;
+  mix-blend-mode:overlay;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.03), rgba(255,255,255,.03) 1px, transparent 1px, transparent 2px);
+}
+
+.paw-haze{
+  position:fixed;
+  inset:-60px;
+  z-index:1;
+  pointer-events:none;
+  opacity:.38;
+  filter: blur(2px);
+  background:
+    radial-gradient(18px 18px at 12% 18%, rgba(255,255,255,.05), transparent 65%),
+    radial-gradient(20px 20px at 22% 38%, rgba(255,255,255,.04), transparent 65%),
+    radial-gradient(24px 24px at 76% 22%, rgba(255,255,255,.035), transparent 70%),
+    radial-gradient(16px 16px at 84% 52%, rgba(255,255,255,.04), transparent 65%),
+    radial-gradient(18px 18px at 68% 76%, rgba(255,255,255,.03), transparent 68%),
+    radial-gradient(30px 30px at 34% 80%, rgba(255,255,255,.02), transparent 70%);
+}
+
+.app{
+  position:relative;
+  z-index:2;
+  min-height:100vh;
+  display:grid;
+  grid-template-columns: 280px 1fr;
+}
+
+.sidebar{
+  padding:28px 22px;
+  border-right:1px solid rgba(255,255,255,.09);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.015));
+  backdrop-filter: blur(var(--blur));
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+}
+.brand-mark{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  background: linear-gradient(135deg, rgba(124,246,255,.25), rgba(255,122,217,.18));
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+.brand-name{
+  font-weight:800;
+  letter-spacing:.12em;
+  font-size:18px;
+  background: linear-gradient(90deg, var(--a1), var(--a2), var(--a3));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.brand-sub{
+  color:var(--muted);
+  font-size:12px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  margin: 0 0 26px 2px;
+}
+
+.nav{
+  margin: 10px 0 18px 0;
+}
+.nav a{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 12px 14px;
+  border-radius: 14px;
+  margin-bottom: 6px;
+  text-decoration:none;
+  color: var(--muted);
+  transition: transform .22s ease, background .22s ease, color .22s ease;
+  border: 1px solid transparent;
+}
+.nav a:hover{
+  color: var(--text);
+  background: rgba(255,255,255,.08);
+  transform: translateX(4px);
+  border-color: rgba(255,255,255,.09);
+}
+.nav a.active{
+  color: var(--text);
+  background: linear-gradient(135deg, rgba(124,246,255,.14), rgba(255,184,107,.10), rgba(255,122,217,.10));
+  border-color: rgba(255,255,255,.14);
+}
+
+.sidebox{
+  margin-top:18px;
+  padding:16px;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.10);
+}
+.kbd{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(0,0,0,.25);
+  border: 1px solid rgba(255,255,255,.12);
+  color: var(--muted);
+  font-size: 12px;
+}
+.kbd strong{
+  color: var(--text);
+  letter-spacing:.06em;
+}
+.side-actions{
+  margin-top:12px;
+  display:grid;
+  gap:10px;
+}
+.btn{
+  cursor:pointer;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  transition: transform .2s ease, background .2s ease, border-color .2s ease;
+}
+.btn:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.09);
+  border-color: rgba(255,255,255,.22);
+}
+.btn.primary{
+  border: none;
+  background: linear-gradient(135deg, rgba(124,246,255,.20), rgba(255,184,107,.18), rgba(255,122,217,.18));
+}
+.btn.small{
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.main{
+  padding: 44px 44px 64px 44px;
+}
+
+.hero{
+  max-width: 980px;
+  margin-bottom: 36px;
+}
+.hero h1{
+  font-size: 58px;
+  margin:0 0 16px 0;
+  line-height:1.02;
+  background: linear-gradient(90deg, var(--a1), var(--a2), var(--a3));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.hero p{
+  margin:0 0 18px 0;
+  color: var(--muted);
+  font-size: 18px;
+  max-width: 720px;
+}
+.hero .cta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top: 18px;
+}
+
+.pill{
+  display:inline-flex;
+  gap:10px;
+  align-items:center;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.05);
+  color: var(--muted);
+  font-size: 13px;
+}
+.pill b{ color: var(--text); }
+
+.section{
+  margin-top: 38px;
+  padding-top: 18px;
+}
+.section h2{
+  font-size: 22px;
+  letter-spacing:.06em;
+  margin: 0 0 14px 0;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.92);
+}
+.section .sub{
+  color: var(--muted);
+  margin: 0 0 18px 0;
+  max-width: 860px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 18px;
+}
+
+.card{
+  position:relative;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,.14);
+  background: linear-gradient(160deg, rgba(255,255,255,.14), rgba(255,255,255,.04));
+  backdrop-filter: blur(var(--blur));
+  box-shadow: 0 14px 60px rgba(0,0,0,.35);
+  overflow:hidden;
+  transition: transform .32s ease, box-shadow .32s ease, border-color .32s ease;
+}
+.card:hover{
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: var(--shadow);
+  border-color: rgba(255,255,255,.24);
+}
+.card .topline{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 14px 16px 0 16px;
+  gap: 10px;
+}
+.badge{
+  font-size: 11px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color: rgba(255,255,255,.88);
+  background: rgba(0,0,0,.30);
+  border: 1px solid rgba(255,255,255,.12);
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+.tagrow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding: 0 16px 14px 16px;
+}
+.tag{
+  font-size: 12px;
+  color: var(--muted);
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.04);
+}
+.card img.pup{
+  width:100%;
+  height: 210px;
+  object-fit: cover;
+  display:block;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+.card .body{
+  padding: 14px 16px 16px 16px;
+}
+.card h3{
+  margin: 0 0 6px 0;
+  font-size: 20px;
+}
+.card p{
+  margin:0 0 12px 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height:1.5;
+}
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.row .btn{
+  flex: 1 1 auto;
+  text-align:center;
+}
+
+.filters{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+  margin: 12px 0 16px 0;
+}
+.search{
+  flex: 1 1 260px;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.05);
+  border-radius: 16px;
+  padding: 10px 12px;
+}
+.search input{
+  width:100%;
+  border:none;
+  outline:none;
+  background: transparent;
+  color: var(--text);
+}
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.chip{
+  cursor:pointer;
+  user-select:none;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.04);
+  color: var(--muted);
+  font-size: 12px;
+  transition: transform .18s ease, background .18s ease, color .18s ease, border-color .18s ease;
+}
+.chip:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.07);
+  color: var(--text);
+}
+.chip.active{
+  color: var(--text);
+  border-color: rgba(255,255,255,.24);
+  background: linear-gradient(135deg, rgba(124,246,255,.18), rgba(255,184,107,.14), rgba(255,122,217,.14));
+}
+
+.split{
+  display:grid;
+  grid-template-columns: 1.05fr .95fr;
+  gap: 18px;
+}
+@media (max-width: 980px){
+  .app{ grid-template-columns: 1fr; }
+  .sidebar{ position:sticky; top:0; z-index:5; border-right:none; border-bottom:1px solid rgba(255,255,255,.09);}
+  .main{ padding: 26px 18px 60px 18px; }
+  .split{ grid-template-columns: 1fr; }
+  .hero h1{ font-size: 44px; }
+}
+
+.media{
+  border-radius: var(--radius);
+  overflow:hidden;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.03);
+}
+.media img{
+  width:100%;
+  display:block;
+  height:auto;
+}
+
+.list{
+  margin:0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height:1.7;
+}
+.list b{ color: var(--text); }
+
+.callout{
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.05);
+  padding: 16px;
+}
+.callout .mini{
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.footer{
+  margin-top: 54px;
+  padding-top: 26px;
+  border-top: 1px solid rgba(255,255,255,.10);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Palette */
+.palette{
+  position:fixed;
+  inset:0;
+  z-index: 20;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background: rgba(0,0,0,.58);
+  backdrop-filter: blur(10px);
+}
+.palette.active{ display:flex; }
+.palette-box{
+  width: 640px;
+  max-width: 92%;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: #0c1224;
+  box-shadow: 0 50px 140px rgba(0,0,0,.70);
+  overflow:hidden;
+}
+.palette-head{
+  padding: 14px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.palette-head input{
+  width:100%;
+  border:none;
+  outline:none;
+  border-radius: 14px;
+  background: rgba(255,255,255,.06);
+  padding: 12px 12px;
+  color: var(--text);
+}
+.palette-list{
+  max-height: 340px;
+  overflow:auto;
+}
+.palette-item{
+  padding: 12px 14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  cursor:pointer;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.palette-item:hover{
+  background: rgba(255,255,255,.06);
+}
+.palette-item small{
+  color: var(--muted);
+}
+
+/* Modal */
+.modal{
+  position:fixed;
+  inset:0;
+  z-index: 30;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background: rgba(0,0,0,.62);
+  backdrop-filter: blur(10px);
+}
+.modal.active{ display:flex; }
+.modal-box{
+  width: 920px;
+  max-width: 94%;
+  max-height: 88vh;
+  overflow:auto;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(12,18,36,.92);
+  box-shadow: 0 50px 140px rgba(0,0,0,.70);
+}
+.modal-top{
+  padding: 14px 14px 10px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+.modal-top .title{
+  font-weight: 700;
+  letter-spacing:.04em;
+}
+.iconbtn{
+  cursor:pointer;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+.modal-body{
+  padding: 14px;
+}
+.modal-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 860px){
+  .modal-grid{ grid-template-columns: 1fr; }
+}
+
+.toast{
+  position:fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 40;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(12,18,36,.86);
+  color: var(--text);
+  display:none;
+}
+.toast.show{ display:block; animation: pop .18s ease; }
+@keyframes pop{ from{ transform: translateY(8px); opacity:0; } to{ transform: translateY(0); opacity:1; } }
+
+/* Scrollbar */
+::-webkit-scrollbar{ width: 10px; height:10px; }
+::-webkit-scrollbar-thumb{
+  background: linear-gradient(var(--a1), var(--a2), var(--a3));
+  border-radius: 999px;
+}
+</style>
+</head>
+
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="noise" aria-hidden="true"></div>
+<div class="paw-haze" aria-hidden="true"></div>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">🐾</div>
+      <div>
+        <div class="brand-name">PUPPULSE</div>
+        <div class="brand-sub">proof • process • calm</div>
+      </div>
+    </div>
+
+    <nav class="nav" aria-label="Primary">
+      <a href="#puppies" data-id="puppies">Puppies <small>demo</small></a>
+      <a href="#market" data-id="market">Market Snapshot <small>why fewer ads</small></a>
+      <a href="#toolkit" data-id="toolkit">Seller Toolkit <small>templates</small></a>
+      <a href="#buyers" data-id="buyers">Buyer Guide <small>trust</small></a>
+      <a href="#downloads" data-id="downloads">Downloads <small>files</small></a>
+      <a href="#contact" data-id="contact">Contact <small>replace me</small></a>
+    </nav>
+
+    <div class="sidebox">
+      <div class="kbd"><strong>Ctrl</strong> + <strong>K</strong> / <strong>⌘</strong> + <strong>K</strong> <span>Command</span></div>
+      <div class="side-actions">
+        <button class="btn primary" id="openPalette">Open Command Palette</button>
+        <a class="btn" href="#toolkit">Jump: Seller Toolkit</a>
+        <a class="btn" href="assets/puppy_listing_sheet_template.pdf" download>Download: Listing Sheet</a>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section class="hero" id="top">
+      <h1>Puppies, clearly.</h1>
+      <p>
+        The puppy market got quieter: fewer public posts, more buyer skepticism, and tighter budgets.
+        This template helps you win trust the simple way — <b>proof</b>, <b>presentation</b>, and a calm <b>process</b>.
+      </p>
+      <div class="cta">
+        <a class="btn primary" href="#puppies">Browse Demo Puppies</a>
+        <a class="btn" href="#market">Why fewer listings?</a>
+        <a class="btn" href="assets/text_scripts_one_pager.pdf" download>Download Text Scripts</a>
+        <span class="pill">Built for: <b>local pickup</b> • clear records • honest fit</span>
+      </div>
+    </section>
+
+    <section class="section" id="puppies">
+      <h2>Demo Puppies</h2>
+      <p class="sub">
+        These are <b>example cards</b> (replace with your real details). The goal is to look organized instantly:
+        a photo, a few facts, and a clean next step.
+      </p>
+
+      <div class="filters" role="region" aria-label="Puppy filters">
+        <div class="search">
+          <span aria-hidden="true">🔎</span>
+          <input id="searchInput" type="text" placeholder="Search name, energy, notes…" />
+        </div>
+
+        <div class="chips" aria-label="Energy filter">
+          <div class="chip active" data-energy="all">Energy: All</div>
+          <div class="chip" data-energy="Low">Low</div>
+          <div class="chip" data-energy="Medium">Medium</div>
+          <div class="chip" data-energy="High">High</div>
+        </div>
+
+        <div class="chips" aria-label="Ready filter">
+          <div class="chip active" data-ready="all">Ready: Any</div>
+          <div class="chip" data-ready="soon">Ready soon</div>
+          <div class="chip" data-ready="now">Ready now</div>
+        </div>
+      </div>
+
+      <div class="grid" id="puppyGrid"></div>
+
+      <div class="callout" style="margin-top:14px;">
+        <div class="mini">
+          <b>Quick win:</b> send vaccine record + a short video within 2 minutes of inquiry.
+          It filters out low‑intent buyers and keeps your price stable.
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="market">
+      <h2>Market Snapshot</h2>
+      <p class="sub">
+        Why you’re seeing fewer visible puppy listings (and more price spread).
+        This is the simple explanation you can share with someone who’s confused by the “quiet.”
+      </p>
+
+      <div class="split">
+        <div class="card" style="padding:16px;">
+          <div class="topline">
+            <div class="badge">2020 → 2026</div>
+            <div class="badge">simple truth</div>
+          </div>
+          <div class="body">
+            <ul class="list">
+              <li><b>COVID boom</b> inflated demand + prices. Post‑COVID normalized life cooled demand.</li>
+              <li><b>Cost of living</b> rose; fewer impulse buyers can handle puppy expenses.</li>
+              <li><b>Oversupply + shelter saturation</b> shifted buyer options and sentiment.</li>
+              <li><b>Platform restrictions</b> reduced visibility for animal listings.</li>
+              <li><b>Costs rose</b> (vet/food) while what buyers will pay flattened.</li>
+              <li><b>Scam fatigue</b> made buyers skeptical; proof matters more than ever.</li>
+            </ul>
+
+            <div class="row" style="margin-top:12px;">
+              <a class="btn" href="assets/puppy_market_one_pager.pdf" download>Download one‑pager (PDF)</a>
+              <a class="btn" href="#toolkit">Go: Toolkit</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="media">
+          <a href="assets/puppy_market_visual_map.png" target="_blank" rel="noreferrer">
+            <img src="assets/puppy_market_visual_map.png" alt="Puppy market visual map infographic" />
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="toolkit">
+      <h2>Seller Toolkit</h2>
+      <p class="sub">
+        Templates that make you look legitimate immediately. Use them to standardize your process and reduce drama.
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <img class="pup" src="assets/puppy_listing_sheet_template.png" alt="Listing sheet template preview" />
+          <div class="body">
+            <h3>Listing Sheet</h3>
+            <p>A one‑page sheet that answers the questions buyers ask first.</p>
+            <div class="row">
+              <a class="btn primary" href="assets/puppy_listing_sheet_template.pdf" download>Download PDF</a>
+              <a class="btn" href="assets/puppy_listing_sheet_template.png" target="_blank" rel="noreferrer">Open PNG</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <img class="pup" src="assets/text_scripts_one_pager.png" alt="Text scripts one pager preview" />
+          <div class="body">
+            <h3>Text Scripts</h3>
+            <p>Short copy/paste messages that qualify buyers without arguing.</p>
+            <div class="row">
+              <a class="btn primary" href="assets/text_scripts_one_pager.pdf" download>Download PDF</a>
+              <a class="btn" href="assets/text_scripts_one_pager.png" target="_blank" rel="noreferrer">Open PNG</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <img class="pup" src="assets/price_positioning_sheet.png" alt="Price positioning sheet preview" />
+          <div class="body">
+            <h3>Price Positioning</h3>
+            <p>Explain value calmly: proof + process. No debates required.</p>
+            <div class="row">
+              <a class="btn primary" href="assets/price_positioning_sheet.pdf" download>Download PDF</a>
+              <a class="btn" href="assets/price_positioning_sheet.png" target="_blank" rel="noreferrer">Open PNG</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <img class="pup" src="assets/simple_buyer_flow.png" alt="Buyer flow" />
+          <div class="body">
+            <h3>Buyer Flow</h3>
+            <p>A clean step-by-step path from inquiry → pickup.</p>
+            <div class="row">
+              <a class="btn primary" href="assets/simple_buyer_flow.png" download>Download PNG</a>
+              <a class="btn" href="#contact">Contact block</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <img class="pup" src="assets/simple_selling_checklist.png" alt="Simple selling checklist" />
+          <div class="body">
+            <h3>Checklist</h3>
+            <p>Practical reminders: proof, photos, process, and common pitfalls.</p>
+            <div class="row">
+              <a class="btn primary" href="assets/simple_selling_checklist.png" download>Download PNG</a>
+              <a class="btn" href="#puppies">See demo cards</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <img class="pup" src="assets/puppy_market_visual_map.png" alt="Market visual map" />
+          <div class="body">
+            <h3>Market Visual Map</h3>
+            <p>Use this to explain the quieter market in 30 seconds.</p>
+            <div class="row">
+              <a class="btn primary" href="assets/puppy_market_visual_map.png" download>Download PNG</a>
+              <a class="btn" href="assets/puppy_market_one_pager.pdf" download>One‑pager PDF</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top:18px;">
+        <div class="mini">
+          <b>Compliance note:</b> Keep everything straightforward and legal. This site template is designed for clear communication,
+          local pickup, and transparent records — not for bypassing rules.
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="buyers">
+      <h2>Buyer Guide</h2>
+      <p class="sub">
+        Buyers are cautious right now (scams + cost pressure). If you’re buying, here’s what to ask for.
+        If you’re selling, this is the trust checklist you should proactively provide.
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <div class="topline">
+            <div class="badge">Ask for</div>
+            <div class="badge">proof</div>
+          </div>
+          <div class="body">
+            <h3>Records & proof</h3>
+            <p>Request a vaccine record, a recent video, and (if claimed) a vet check receipt.</p>
+            <ul class="list">
+              <li>Vaccines up to date</li>
+              <li>Deworming plan</li>
+              <li>Clear pickup plan</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="topline">
+            <div class="badge">Avoid</div>
+            <div class="badge">drama</div>
+          </div>
+          <div class="body">
+            <h3>Red flags</h3>
+            <p>Unclear stories, no paperwork, pressure for deposits, and refusing basic proof.</p>
+            <ul class="list">
+              <li>“Too good to be true” price + urgency</li>
+              <li>No current photos/video</li>
+              <li>Shipping-only offers</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="topline">
+            <div class="badge">Good</div>
+            <div class="badge">fit</div>
+          </div>
+          <div class="body">
+            <h3>Temperament match</h3>
+            <p>Energy level matters more than looks. Ask “calm vs high-energy?” and choose honestly.</p>
+            <ul class="list">
+              <li>Work schedule + exercise time</li>
+              <li>Kids/pets at home</li>
+              <li>Crate + routine expectations</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="downloads">
+      <h2>Downloads</h2>
+      <p class="sub">Everything bundled in /assets — clickable here for convenience.</p>
+
+      <div class="grid">
+        <div class="card" style="padding:16px;">
+          <h3>Listing Sheet</h3>
+          <p>PDF + PNG preview.</p>
+          <div class="row">
+            <a class="btn primary" href="assets/puppy_listing_sheet_template.pdf" download>PDF</a>
+            <a class="btn" href="assets/puppy_listing_sheet_template.png" download>PNG</a>
+          </div>
+        </div>
+
+        <div class="card" style="padding:16px;">
+          <h3>Text Scripts</h3>
+          <p>Copy/paste lines.</p>
+          <div class="row">
+            <a class="btn primary" href="assets/text_scripts_one_pager.pdf" download>PDF</a>
+            <a class="btn" href="assets/text_scripts_one_pager.png" download>PNG</a>
+          </div>
+        </div>
+
+        <div class="card" style="padding:16px;">
+          <h3>Price Positioning</h3>
+          <p>Explain value calmly.</p>
+          <div class="row">
+            <a class="btn primary" href="assets/price_positioning_sheet.pdf" download>PDF</a>
+            <a class="btn" href="assets/price_positioning_sheet.png" download>PNG</a>
+          </div>
+        </div>
+
+        <div class="card" style="padding:16px;">
+          <h3>Market Snapshot</h3>
+          <p>Visual map + one‑pager.</p>
+          <div class="row">
+            <a class="btn primary" href="assets/puppy_market_visual_map.png" download>PNG</a>
+            <a class="btn" href="assets/puppy_market_one_pager.pdf" download>PDF</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="contact">
+      <h2>Contact</h2>
+      <p class="sub">
+        Replace these placeholders with your own info. Keep the message short and calm.
+      </p>
+
+      <div class="split">
+        <div class="card" style="padding:16px;">
+          <div class="body">
+            <h3>Contact block</h3>
+            <p>Copy/paste this into your listings (replace details):</p>
+            <div class="callout" style="margin-top:10px;">
+              <div class="mini" id="contactBlock">
+                <b>City:</b> ____________<br/>
+                <b>Pickup:</b> local meetup / scheduled window<br/>
+                <b>Contact:</b> youremail@example.com • (555) 555‑5555<br/>
+                <b>Proof:</b> vaccine record + short video available
+              </div>
+            </div>
+            <div class="row" style="margin-top:12px;">
+              <button class="btn primary" id="copyContact">Copy contact block</button>
+              <button class="btn" id="copyFirstReply">Copy “First reply”</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:16px;">
+          <div class="body">
+            <h3>Welfare & legality</h3>
+            <p>
+              This template is meant for <b>clear communication</b> and <b>responsible placement</b>.
+              Always follow local laws and any platform rules. If you’re unsure, ask a local vet or licensing office.
+            </p>
+            <ul class="list">
+              <li>Prioritize health + temperament match</li>
+              <li>Be transparent about records and policies</li>
+              <li>Consider adoption if it’s a better fit</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;">
+        <div>© Template: PupPulse (offline) • Built for clarity, not hype.</div>
+        <div class="kbd"><strong>Tip</strong> Attach proof fast • Keep it short • Schedule a window</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Command Palette -->
+<div class="palette" id="palette" aria-hidden="true">
+  <div class="palette-box" role="dialog" aria-label="Command palette">
+    <div class="palette-head">
+      <span aria-hidden="true">⌘</span>
+      <input id="paletteInput" type="text" placeholder="Type: puppies, toolkit, download, copy…" />
+      <button class="iconbtn" id="closePalette" title="Close">Esc</button>
+    </div>
+    <div class="palette-list" id="paletteList"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="modal-box" role="dialog" aria-label="Puppy details">
+    <div class="modal-top">
+      <div class="title" id="modalTitle">Puppy</div>
+      <button class="iconbtn" id="closeModal">Close</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Copied.</div>
+
+<script>
+/* ===========================
+   PupPulse: Offline demo site
+   =========================== */
+
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
+
+function toast(msg="Done"){
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(()=>t.classList.remove("show"), 1200);
+}
+
+function copy(text){
+  navigator.clipboard.writeText(text).then(()=>toast("Copied to clipboard"));
+}
+
+/* ---- Demo puppy data (replace with your real listings) ---- */
+const PUPPIES = [
+  {
+    id:"orbit",
+    name:"Orbit",
+    sex:"Male",
+    energy:"Medium",
+    ready:"2026-01-15",
+    price:1500,
+    notes:"Confident, cuddly, likes exploring. Great ‘middle energy’ pup.",
+    included:["Vaccine record","Short video","Local pickup window"],
+    img:"assets/pups/dog_01.jpg"
+  },
+  {
+    id:"nova",
+    name:"Nova",
+    sex:"Female",
+    energy:"High",
+    ready:"2026-01-20",
+    price:1700,
+    notes:"Playful and bold. Best for an active home with time to train.",
+    included:["Vaccine record","Vet check (optional)","Local pickup window"],
+    img:"assets/pups/dog_02.jpg"
+  },
+  {
+    id:"mellow",
+    name:"Mellow",
+    sex:"Male",
+    energy:"Low",
+    ready:"2026-01-10",
+    price:1600,
+    notes:"Calm lap‑dog vibe. Good match for quieter homes and first‑timers.",
+    included:["Vaccine record","Short video","Local pickup window"],
+    img:"assets/pups/dog_03.jpg"
+  },
+  {
+    id:"pixel",
+    name:"Pixel",
+    sex:"Female",
+    energy:"Medium",
+    ready:"2026-01-18",
+    price:1550,
+    notes:"Curious, people‑focused, learns quickly with routine.",
+    included:["Vaccine record","Short video","Local pickup window"],
+    img:"assets/pups/dog_04.jpg"
+  },
+  {
+    id:"comet",
+    name:"Comet",
+    sex:"Male",
+    energy:"High",
+    ready:"2026-01-22",
+    price:1650,
+    notes:"Fast, fun, and needs engagement. Ideal for training and structure.",
+    included:["Vaccine record","Short video","Local pickup window"],
+    img:"assets/pups/dog_05.jpg"
+  },
+  {
+    id:"luna",
+    name:"Luna",
+    sex:"Female",
+    energy:"Low",
+    ready:"2026-01-12",
+    price:1600,
+    notes:"Gentle, observant, settles quickly. Great for calm households.",
+    included:["Vaccine record","Short video","Local pickup window"],
+    img:"assets/pups/dog_06.jpg"
+  }
+];
+
+const FIRST_REPLY = "Thanks for reaching out. Yes, the puppy is available. Before we schedule, a few quick questions: (1) What city are you in? (2) Any pets at home? (3) Are you looking for a calm or high-energy pup?";
+const SAFETY_LINE = "I don’t ship. Pickup is local / scheduled window. Cash or agreed method at pickup only. I can share vaccine record + a short video.";
+const CONTACT_BLOCK = () => $("#contactBlock").innerText.replace(/\s+\n/g,"\n");
+
+/* ---- Render puppies ---- */
+const grid = $("#puppyGrid");
+
+function cardHTML(p){
+  const ready = new Date(p.ready);
+  const now = new Date();
+  const days = Math.ceil((ready - now) / (1000*60*60*24));
+  const readyLabel = isFinite(days) ? (days <= 7 ? "Ready now" : "Ready soon") : "Ready date";
+  return `
+    <article class="card" data-energy="${p.energy}" data-name="${(p.name+" "+p.notes).toLowerCase()}" data-ready="${readyLabel}">
+      <div class="topline">
+        <span class="badge">DEMO</span>
+        <span class="badge">${p.energy} energy</span>
+      </div>
+      <img class="pup" src="${p.img}" alt="Dog photo for ${p.name}" />
+      <div class="body">
+        <h3>${p.name}</h3>
+        <p>${p.notes}</p>
+        <div class="tagrow">
+          <span class="tag">Sex: ${p.sex}</span>
+          <span class="tag">Ready: ${p.ready}</span>
+          <span class="tag">Price: $${p.price}</span>
+        </div>
+        <div class="row">
+          <button class="btn primary" data-open="${p.id}">Details</button>
+          <button class="btn" data-copy="first">Copy first reply</button>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function render(list){
+  grid.innerHTML = list.map(cardHTML).join("");
+}
+
+render(PUPPIES);
+
+/* ---- Filtering ---- */
+let activeEnergy = "all";
+let activeReady = "all";
+
+function applyFilters(){
+  const q = $("#searchInput").value.trim().toLowerCase();
+  $$(".chip[data-energy]").forEach(ch => ch.classList.toggle("active", ch.dataset.energy === activeEnergy || (activeEnergy==="all" && ch.dataset.energy==="all")));
+  $$(".chip[data-ready]").forEach(ch => ch.classList.toggle("active", ch.dataset.ready === activeReady || (activeReady==="all" && ch.dataset.ready==="all")));
+
+  $$("#puppyGrid .card").forEach(card=>{
+    const energyOk = activeEnergy === "all" || card.dataset.energy === activeEnergy;
+    const readyOk  = activeReady === "all" || (activeReady === "soon" && card.dataset.ready === "Ready soon") || (activeReady === "now" && card.dataset.ready === "Ready now");
+    const textOk   = !q || card.dataset.name.includes(q);
+    card.style.display = (energyOk && readyOk && textOk) ? "" : "none";
+  });
+}
+
+$("#searchInput").addEventListener("input", applyFilters);
+$$(".chip[data-energy]").forEach(ch=>{
+  ch.addEventListener("click", ()=>{
+    activeEnergy = ch.dataset.energy;
+    applyFilters();
+  });
+});
+$$(".chip[data-ready]").forEach(ch=>{
+  ch.addEventListener("click", ()=>{
+    activeReady = ch.dataset.ready;
+    applyFilters();
+  });
+});
+
+/* ---- Modal ---- */
+const modal = $("#modal");
+const modalTitle = $("#modalTitle");
+const modalBody = $("#modalBody");
+
+function openModalFor(id){
+  const p = PUPPIES.find(x=>x.id===id);
+  if(!p) return;
+  modalTitle.textContent = `${p.name} — details`;
+  modalBody.innerHTML = `
+    <div class="modal-grid">
+      <div class="media">
+        <img src="${p.img}" alt="Dog photo for ${p.name}" />
+      </div>
+      <div class="card" style="padding:16px;">
+        <div class="topline">
+          <span class="badge">DEMO</span>
+          <span class="badge">${p.energy} energy</span>
+        </div>
+        <div class="body" style="padding:0;">
+          <h3 style="margin-top:10px;">Quick facts</h3>
+          <ul class="list">
+            <li><b>Sex:</b> ${p.sex}</li>
+            <li><b>Ready date:</b> ${p.ready}</li>
+            <li><b>Price (demo):</b> $${p.price}</li>
+          </ul>
+
+          <h3 style="margin-top:14px;">What’s included</h3>
+          <ul class="list">${p.included.map(i=>`<li>${i}</li>`).join("")}</ul>
+
+          <div class="row" style="margin-top:12px;">
+            <button class="btn primary" id="copySafety">Copy safety line</button>
+            <a class="btn" href="assets/puppy_listing_sheet_template.pdf" download>Listing sheet PDF</a>
+          </div>
+
+          <div class="callout" style="margin-top:12px;">
+            <div class="mini"><b>Best practice:</b> confirm fit first. Schedule a pickup window only after proof is shared.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  modal.classList.add("active");
+  modal.setAttribute("aria-hidden","false");
+  $("#copySafety").addEventListener("click", ()=>copy(SAFETY_LINE));
+}
+
+$("#closeModal").addEventListener("click", ()=>{
+  modal.classList.remove("active");
+  modal.setAttribute("aria-hidden","true");
+});
+modal.addEventListener("click", (e)=>{
+  if(e.target === modal){
+    modal.classList.remove("active");
+    modal.setAttribute("aria-hidden","true");
+  }
+});
+
+document.addEventListener("click", (e)=>{
+  const open = e.target.closest("[data-open]");
+  if(open) openModalFor(open.dataset.open);
+
+  const c = e.target.closest("[data-copy]");
+  if(c && c.dataset.copy === "first") copy(FIRST_REPLY);
+});
+
+/* ---- Contact copy ---- */
+$("#copyContact").addEventListener("click", ()=>copy(CONTACT_BLOCK()));
+$("#copyFirstReply").addEventListener("click", ()=>copy(FIRST_REPLY));
+
+/* ---- Smooth nav + active section ---- */
+const navLinks = $$(".nav a[data-id]");
+function goTo(hash){
+  const el = document.querySelector(hash);
+  if(el) el.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+navLinks.forEach(a=>{
+  a.addEventListener("click", (e)=>{
+    // allow default anchor, but smooth
+    e.preventDefault();
+    goTo(a.getAttribute("href"));
+  });
+});
+
+const sections = navLinks.map(a => document.getElementById(a.dataset.id)).filter(Boolean);
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(ent=>{
+    if(ent.isIntersecting){
+      navLinks.forEach(a=>a.classList.toggle("active", a.dataset.id === ent.target.id));
+    }
+  });
+}, { rootMargin: "-45% 0px -50% 0px", threshold: 0.01 });
+sections.forEach(s=>io.observe(s));
+
+/* ---- Command palette ---- */
+const palette = $("#palette");
+const paletteInput = $("#paletteInput");
+const paletteList = $("#paletteList");
+
+const COMMANDS = [
+  { k:"go puppies",     label:"Go → Puppies",        hint:"#puppies", action:()=>goTo("#puppies") },
+  { k:"go market",      label:"Go → Market Snapshot",hint:"#market",  action:()=>goTo("#market") },
+  { k:"go toolkit",     label:"Go → Seller Toolkit", hint:"#toolkit", action:()=>goTo("#toolkit") },
+  { k:"go buyers",      label:"Go → Buyer Guide",    hint:"#buyers",  action:()=>goTo("#buyers") },
+  { k:"go downloads",   label:"Go → Downloads",      hint:"#downloads", action:()=>goTo("#downloads") },
+  { k:"go contact",     label:"Go → Contact",        hint:"#contact", action:()=>goTo("#contact") },
+
+  { k:"download listing sheet", label:"Download → Listing Sheet (PDF)", hint:"assets/...", action:()=>location.href="assets/puppy_listing_sheet_template.pdf" },
+  { k:"download scripts",       label:"Download → Text Scripts (PDF)",  hint:"assets/...", action:()=>location.href="assets/text_scripts_one_pager.pdf" },
+  { k:"download price",         label:"Download → Price Positioning (PDF)", hint:"assets/...", action:()=>location.href="assets/price_positioning_sheet.pdf" },
+
+  { k:"copy first reply", label:"Copy → First reply script", hint:"clipboard", action:()=>copy(FIRST_REPLY) },
+  { k:"copy safety",      label:"Copy → Safety line",        hint:"clipboard", action:()=>copy(SAFETY_LINE) },
+  { k:"copy contact",     label:"Copy → Contact block",      hint:"clipboard", action:()=>copy(CONTACT_BLOCK()) },
+];
+
+function openPalette(){
+  palette.classList.add("active");
+  palette.setAttribute("aria-hidden","false");
+  paletteInput.value = "";
+  renderPalette("");
+  setTimeout(()=>paletteInput.focus(), 0);
+}
+function closePalette(){
+  palette.classList.remove("active");
+  palette.setAttribute("aria-hidden","true");
+}
+
+function renderPalette(q){
+  const qq = q.trim().toLowerCase();
+  const list = COMMANDS.filter(c => !qq || c.k.includes(qq) || c.label.toLowerCase().includes(qq));
+  paletteList.innerHTML = list.map((c,i)=>`
+    <div class="palette-item" data-i="${i}">
+      <div>${c.label}</div>
+      <small>${c.hint}</small>
+    </div>
+  `).join("");
+  paletteList._filtered = list;
+}
+
+$("#openPalette").addEventListener("click", openPalette);
+$("#closePalette").addEventListener("click", closePalette);
+
+window.addEventListener("keydown", (e)=>{
+  if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k"){
+    e.preventDefault();
+    palette.classList.contains("active") ? closePalette() : openPalette();
+  }
+  if(e.key === "Escape"){
+    if(palette.classList.contains("active")) closePalette();
+    if(modal.classList.contains("active")){
+      modal.classList.remove("active");
+      modal.setAttribute("aria-hidden","true");
+    }
+  }
+});
+
+palette.addEventListener("click", (e)=>{
+  if(e.target === palette) closePalette();
+  const item = e.target.closest(".palette-item");
+  if(!item) return;
+  const filtered = paletteList._filtered || [];
+  const cmd = filtered[Number(item.dataset.i)];
+  if(cmd){ closePalette(); cmd.action(); }
+});
+
+paletteInput.addEventListener("input", ()=>renderPalette(paletteInput.value));
+paletteInput.addEventListener("keydown", (e)=>{
+  if(e.key === "Enter"){
+    const filtered = paletteList._filtered || [];
+    if(filtered[0]){ closePalette(); filtered[0].action(); }
+  }
+});
+
+/* ---- Background: stars + paw particles ---- */
+const canvas = document.getElementById("sky");
+const ctx = canvas.getContext("2d", { alpha:true });
+
+let W=0,H=0,DPR=1;
+let particles = [];
+
+function resize(){
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = canvas.width = Math.floor(window.innerWidth * DPR);
+  H = canvas.height = Math.floor(window.innerHeight * DPR);
+  canvas.style.width = window.innerWidth + "px";
+  canvas.style.height = window.innerHeight + "px";
+  buildParticles();
+}
+
+function buildParticles(){
+  const count = Math.floor((window.innerWidth * window.innerHeight) / 14000);
+  particles = Array.from({length: Math.max(120, Math.min(260, count))}, ()=>{
+    const type = Math.random() < 0.08 ? "paw" : "star";
+    return {
+      type,
+      x: Math.random()*W,
+      y: Math.random()*H,
+      r: (type==="paw" ? (8 + Math.random()*14) : (1 + Math.random()*2.2))*DPR,
+      s: (0.15 + Math.random()*0.85) * DPR,
+      a: 0.12 + Math.random()*0.65
+    };
+  });
+}
+
+function drawPaw(x,y,r,a){
+  ctx.save();
+  ctx.globalAlpha = a;
+  ctx.fillStyle = "white";
+  // pad
+  ctx.beginPath();
+  ctx.ellipse(x, y, r*0.42, r*0.32, 0, 0, Math.PI*2);
+  ctx.fill();
+  // toes
+  const toes = [
+    [-r*0.44, -r*0.36],
+    [-r*0.18, -r*0.52],
+    [ r*0.18, -r*0.52],
+    [ r*0.44, -r*0.36]
+  ];
+  toes.forEach(([dx,dy])=>{
+    ctx.beginPath();
+    ctx.arc(x+dx, y+dy, r*0.18, 0, Math.PI*2);
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
+let t0 = performance.now();
+
+function tick(now){
+  const dt = (now - t0) / 1000;
+  t0 = now;
+
+  ctx.clearRect(0,0,W,H);
+
+  particles.forEach(p=>{
+    p.y += p.s * (12*DPR) * dt;
+    if(p.y > H + 40*DPR){ p.y = -40*DPR; p.x = Math.random()*W; }
+
+    if(p.type==="star"){
+      const tw = 0.65 + 0.35*Math.sin((p.x + now*0.002) * 0.002);
+      ctx.globalAlpha = p.a * tw;
+      ctx.fillStyle = "white";
+      ctx.fillRect(p.x, p.y, p.r, p.r);
+    }else{
+      const glow = 0.40 + 0.30*Math.sin((p.y + now*0.001) * 0.003);
+      drawPaw(p.x, p.y, p.r, p.a*glow*0.55);
+    }
+  });
+
+  requestAnimationFrame(tick);
+}
+
+window.addEventListener("resize", resize);
+resize();
+requestAnimationFrame(tick);
+</script>
+
+<!-- filler-line-0001 :: SftIhlsAMl5XZSJDPBEasAQ2 -->
+<!-- filler-line-0002 :: QuLDHqj0dnDScqiNAwJ5XtNQ -->
+<!-- filler-line-0003 :: HZBGRFyhCXqtGa0qO5VYPhEL -->
+<!-- filler-line-0004 :: tGg2jXzhjWEJJjiEt7mdZBJ3 -->
+<!-- filler-line-0005 :: FSn5YZoTPuKHZqPTHrfgtPlK -->
+<!-- filler-line-0006 :: AH3nbLQJTftCvMbNZjnWVWkb -->
+<!-- filler-line-0007 :: 4V7MRrznML9vbfaRv9AGg9lI -->
+<!-- filler-line-0008 :: MBf8ZubwEEU0huJ7a2MqBXi6 -->
+<!-- filler-line-0009 :: Z6SYcljIqlUZ7Node62wJp1x -->
+<!-- filler-line-0010 :: qAiB8tHRA5jrElqXs3MPf8xy -->
+<!-- filler-line-0011 :: rhhlJVj30RFwuSQWy4Q2jaI1 -->
+<!-- filler-line-0012 :: yOoEjP0g6yzhhmle1CJgBsVu -->
+<!-- filler-line-0013 :: xDDSz3Vl0HF7D3BLFN01lV6U -->
+<!-- filler-line-0014 :: ptXmyIPYzXvM73E3ynaC1Hhp -->
+<!-- filler-line-0015 :: ppNwDelKrONS1eSXpROlbE2r -->
+<!-- filler-line-0016 :: SfnnGi2zF0qritSFHfulnqHO -->
+<!-- filler-line-0017 :: MlQx3HBnkoszuob28ij23T6f -->
+<!-- filler-line-0018 :: 4HGN55JAMWxjUcpRtRg5OfFi -->
+<!-- filler-line-0019 :: nUxwbycdS4GbeoarSqbccUzx -->
+<!-- filler-line-0020 :: uHyOVxengFaZ1rOTCVm3Cln0 -->
+<!-- filler-line-0021 :: Ps0N5rZFz7Q5lgHo0LMCn4t8 -->
+<!-- filler-line-0022 :: Wu6x78z0XE5tEVse6pSNlz9l -->
+<!-- filler-line-0023 :: wzGqQyiTKXK6lUTRUbE2n337 -->
+<!-- filler-line-0024 :: zchEHNvRbmKfo1ttYPS7XnlE -->
+<!-- filler-line-0025 :: qXkJvtDtuFYWJ7BBnHDTr8Rw -->
+<!-- filler-line-0026 :: Br4YYTm06n8x00JoXvvOBM03 -->
+<!-- filler-line-0027 :: 590i8H3cPr33zvoTaCAx0dzN -->
+<!-- filler-line-0028 :: Y0VtAuZFxmCxHt1FAgYNOkTM -->
+<!-- filler-line-0029 :: bfNOOvxm5TOGX6j06tCt43tf -->
+<!-- filler-line-0030 :: BxrYpqwYKYVlWgsZfWPxnGQZ -->
+<!-- filler-line-0031 :: FCTGkzTx3uQRkmawbB72ItJR -->
+<!-- filler-line-0032 :: pnkhkSM49y6uSTq1l4bqhxth -->
+<!-- filler-line-0033 :: 2rXGG0k1flNKKhUkhxLdoIGk -->
+<!-- filler-line-0034 :: Hju1eBdpMKfwf5Ll5umxRIVi -->
+<!-- filler-line-0035 :: piMtSR7ucunuKPoc5XJsDNWw -->
+<!-- filler-line-0036 :: u69sBV3qIH6vM5HokLziNPSh -->
+<!-- filler-line-0037 :: ARsBxiqjCFZ7Fks7ktb2sq2t -->
+<!-- filler-line-0038 :: fHOHR1WR25AFYIim1dI2U9rb -->
+<!-- filler-line-0039 :: vAfM2XhnACqA4Uc3VfVoMx8l -->
+<!-- filler-line-0040 :: mHiUlH0YWPO9l3M3jpERkmR8 -->
+<!-- filler-line-0041 :: H8WwHHoLQi1m7QCV4eBeuZL5 -->
+<!-- filler-line-0042 :: zABzzZNaQZflPp4jDdC523Ox -->
+<!-- filler-line-0043 :: gmuj4Af7cvjgdccN8mUoYwOo -->
+<!-- filler-line-0044 :: PlJ2Rimol9d5mKXyKECoME81 -->
+<!-- filler-line-0045 :: booMpoal9toULLToJkBwDkGX -->
+<!-- filler-line-0046 :: V4LaVlBypN6dz2v9PaRs4dxN -->
+<!-- filler-line-0047 :: UcSjnEUJz2uZFD2GGb6sLALg -->
+<!-- filler-line-0048 :: owdz2djvFOafebohhFx9P03O -->
+<!-- filler-line-0049 :: cVNXNjRn584wKiP5oe9ZvxKa -->
+<!-- filler-line-0050 :: z3mrJOm5IkKZrPQX0uS5vW7T -->
+<!-- filler-line-0051 :: djI10BVJ6DSzoFcdQAX0vCYB -->
+<!-- filler-line-0052 :: Dp6ovkJFseGJG7F6Utz4u2bX -->
+<!-- filler-line-0053 :: Kk3HCFpB5hG8YAQH75Q1qPEC -->
+<!-- filler-line-0054 :: IG2VjDohINsS82wUtQ01hqZo -->
+<!-- filler-line-0055 :: 6oJUDCwgq6MvKxOjPDwHv49g -->
+<!-- filler-line-0056 :: gnZa2xqkm3ATcPmIEwOjB0lx -->
+<!-- filler-line-0057 :: a0cImHaIcdEucMJYJ1Jo087Q -->
+<!-- filler-line-0058 :: ZKFGpzpHIFOYKZQXjUZwcBnh -->
+<!-- filler-line-0059 :: xqVvYYH5jpb9cbSOUbKx9iSk -->
+<!-- filler-line-0060 :: DnDDnc7ehu6EKqVIZcxLwKSy -->
+<!-- filler-line-0061 :: M2kJSzk1W19VSNPbKe36AOLu -->
+<!-- filler-line-0062 :: YOfydjnLbVpiu9SuSZsWEUuw -->
+<!-- filler-line-0063 :: Ciw73k5d1M5y9JamftD2oJE8 -->
+<!-- filler-line-0064 :: 7RDTltKptgw1GjI0Wliyj8lT -->
+<!-- filler-line-0065 :: 18ZICzf3xB66Ia6kDcQJFEco -->
+<!-- filler-line-0066 :: C2tivMj3KBIY9Nm9LyxYPFm0 -->
+<!-- filler-line-0067 :: 36FKH0PHHOafaMF5c9yzQuT1 -->
+<!-- filler-line-0068 :: 5RVZdWi4Bz5teQ9HUMnbI4Pd -->
+<!-- filler-line-0069 :: 6csSYk7RmR9tVR4nJTM1v1Ym -->
+<!-- filler-line-0070 :: lDIKZhlJXOAYJR5iw9MhjjAr -->
+<!-- filler-line-0071 :: 8mVjHyJdUIoOJKyOory4oFEJ -->
+<!-- filler-line-0072 :: Snzj0Z8N4Wcmx1gByPsisZNO -->
+<!-- filler-line-0073 :: OGczqEoccMu5lbccJ7Y5KTnQ -->
+<!-- filler-line-0074 :: 6epyQwbF7IFTqBbneC4pkSC2 -->
+<!-- filler-line-0075 :: 15z9MumMWGtvGr6vS3oBGrtl -->
+<!-- filler-line-0076 :: nq0vI52HKKf3adtlttVTg17y -->
+<!-- filler-line-0077 :: X0zdoNDSThmDevU1VZihV74J -->
+<!-- filler-line-0078 :: 4VqZG6KtuwbDDEU97rSN6GRd -->
+<!-- filler-line-0079 :: oMECfRokeamXrtB3FqIMAiyQ -->
+<!-- filler-line-0080 :: tOhjS0kWEdL2x1jXrX9Vgrib -->
+<!-- filler-line-0081 :: WLPbtRcZHHdJNdemY1Trgk7l -->
+<!-- filler-line-0082 :: fgB6fVNjVz84K8BVv9U0AiNa -->
+<!-- filler-line-0083 :: GhxFZSDPey6yPtfI25SkyhpN -->
+<!-- filler-line-0084 :: msZRp2JYntIq8Pw5IRA1OKiD -->
+<!-- filler-line-0085 :: Fg2Hpfo6Yqka1jEGqrbsit6h -->
+<!-- filler-line-0086 :: LBxMe86oBdR7zdKsRyzPREc4 -->
+<!-- filler-line-0087 :: ctABzdy4atK7FaheizJAdHo8 -->
+<!-- filler-line-0088 :: gmig9VNGDrlqN3kBWaV9b9gs -->
+<!-- filler-line-0089 :: NOAvwFnUZYssFKV8a7PqMNWH -->
+<!-- filler-line-0090 :: NN0V8ENcZve2TxbEu6n7sCrs -->
+<!-- filler-line-0091 :: nUxp996NbJPRP0M2b1pTzOoA -->
+<!-- filler-line-0092 :: sYSBPorvC6k5ccSpjprndRne -->
+<!-- filler-line-0093 :: QhiEBqbXDwA1plCVlDKtk0Cf -->
+<!-- filler-line-0094 :: rf3NLpvFtaPrkWCTfAMJWRQn -->
+<!-- filler-line-0095 :: iFe6RqxOYfkb4iyM60lkEiuN -->
+<!-- filler-line-0096 :: Zm5cT5o8wbHRV7Dd2oxeoAEe -->
+<!-- filler-line-0097 :: ZTLMuM09M3jDF0ZXmBm32qAQ -->
+<!-- filler-line-0098 :: VirxIuS1BcZXA72TtPXnMKdm -->
+<!-- filler-line-0099 :: qsBsbkk52oWzKMxZsxYKkO3M -->
+<!-- filler-line-0100 :: 5Btnd3FRwW2jq0PfUaZ4v0Zw -->
+<!-- filler-line-0101 :: z02dHQOq5mKMX5md7jbWtVSm -->
+<!-- filler-line-0102 :: v3FSBZpsoPOZrNq9DDLXngtf -->
+<!-- filler-line-0103 :: PElYQIYPBy2SrICrf1HUDcpW -->
+<!-- filler-line-0104 :: totwJCLtIPY3EA2RFuNqYwHD -->
+<!-- filler-line-0105 :: 8bUr5RxiVvxqMBWX5su8cJ7c -->
+<!-- filler-line-0106 :: l1PbuzI5dFDAvpug5sBVOZNv -->
+<!-- filler-line-0107 :: aK6UCMbZsXPEa7PX9yd53wZk -->
+<!-- filler-line-0108 :: HeCcSBYCnhG1Od9YjHbWdWsP -->
+<!-- filler-line-0109 :: cKsPXC7V9UUZlDdBq6XeyM00 -->
+<!-- filler-line-0110 :: yYLwheBnxtd1rkOd5iRKp2IZ -->
+<!-- filler-line-0111 :: SDsSGnW3Lg6SfVFqhjF1p33e -->
+<!-- filler-line-0112 :: XwCibNsKP7x4Gq4AsflJ5txK -->
+<!-- filler-line-0113 :: MLwfjgzpSY54UJj2lW6h2Qmy -->
+<!-- filler-line-0114 :: tsySnyEBSOABq7X4EpkK9Yre -->
+<!-- filler-line-0115 :: m13iAALdXMwRKyrtPzPygZ6H -->
+<!-- filler-line-0116 :: QdBKQ86ni5sQnhUzO2cBpw8Z -->
+<!-- filler-line-0117 :: HFgYjSzEUXPHeysMD3Gd81KH -->
+<!-- filler-line-0118 :: RF5KTl2U2xWbqDKWcfC3wnYd -->
+<!-- filler-line-0119 :: swhQaMYuK32UMLbCbaXukIcw -->
+<!-- filler-line-0120 :: 4veYwnDV0YEmMneUTnhXudi5 -->
+<!-- filler-line-0121 :: rMPaTTbeMvkCaDLwS06S1ZtW -->
+<!-- filler-line-0122 :: J6gqdj0m21MxfNL3C4eVgkzR -->
+<!-- filler-line-0123 :: o3WBesr0XjpRTdOzPl4HoYdw -->
+<!-- filler-line-0124 :: VMDbdm984hS9Gjoicr5EkEwh -->
+<!-- filler-line-0125 :: QiZ8v5fPrXH2ri98Q7DapMDH -->
+<!-- filler-line-0126 :: Cd8LT0zZhddiOf3e5kslzsAC -->
+<!-- filler-line-0127 :: Tszr4pPGjVA17GvhdyVUyq7x -->
+<!-- filler-line-0128 :: hwLIl0HJZURs04EtZsCxczfl -->
+<!-- filler-line-0129 :: GYJdwmZzTZdfVQ61VHodkHef -->
+<!-- filler-line-0130 :: 6rxy2JrSbWUjuHWp89giUgOw -->
+<!-- filler-line-0131 :: DGDGkNBA3tQG7Ktd15Fmxcxa -->
+<!-- filler-line-0132 :: obYEZBCjNS1Awx3918Nl1qnL -->
+<!-- filler-line-0133 :: zeV4UKuo9cPfuSzkz7dC9rvl -->
+<!-- filler-line-0134 :: wAqqUKv8XZovF4qJguZU6eH0 -->
+<!-- filler-line-0135 :: qjFf5HkwgMF0iFv3HFWEufuY -->
+<!-- filler-line-0136 :: DI1bbYc4C1gltLMy6z4dOfOV -->
+<!-- filler-line-0137 :: JoOidyA5rZ6Syg7ULrG23v3P -->
+<!-- filler-line-0138 :: gdx9K0Te29bukOFXrSNasl5c -->
+<!-- filler-line-0139 :: o4l0tukIsj3GSUA7Xw1Mn7Gm -->
+<!-- filler-line-0140 :: SCV2Hc5zloCuvOf8a1EDxkOw -->
+<!-- filler-line-0141 :: yOeeXvtwlcQ6fY778otr81lp -->
+<!-- filler-line-0142 :: OumDvrVFWM6wVPMLQjTS8294 -->
+<!-- filler-line-0143 :: 3OFWOCmrmR2SrMyvciPdtMec -->
+<!-- filler-line-0144 :: uIjZ595REm1tjmjriMrzAuga -->
+<!-- filler-line-0145 :: ugeI4i7lTnnkcAytdtU2RknO -->
+<!-- filler-line-0146 :: BiGGaoPhCq5Ka4GpAxFMk9by -->
+<!-- filler-line-0147 :: Gxbpg74TFIkRJXpqibyC9sZf -->
+<!-- filler-line-0148 :: 3ipD9uWM9lHMLlFZUFytqJFH -->
+<!-- filler-line-0149 :: nz6Ye3Mv2F6MJ1Qd20oYLkVO -->
+<!-- filler-line-0150 :: kD8pL7mDC3UQOq6Fgsgp3w5r -->
+<!-- filler-line-0151 :: K4tz7sKALtOvznABSIPDhjKM -->
+<!-- filler-line-0152 :: z1clW6ZkwrzZ4L3PldRmFkLV -->
+<!-- filler-line-0153 :: xanFOgmIe3Qo96tFnT0DRyqk -->
+<!-- filler-line-0154 :: gJRkoaQtMWHhUWBpCdoA7xbm -->
+<!-- filler-line-0155 :: QpcCewisKtWKd39Fnu0pEnbs -->
+<!-- filler-line-0156 :: 3oiAkTxuidMp3unn2SJpV6jO -->
+<!-- filler-line-0157 :: nDzyyY5fAw2w2SUw1eV4ptW9 -->
+<!-- filler-line-0158 :: X1iCcukYbn0byw4o3qJhlyFC -->
+<!-- filler-line-0159 :: 6HIQnheaffQavAVJi06eH2tO -->
+<!-- filler-line-0160 :: Ye9gyDYAc7QD32kSnEb57Z8S -->
+<!-- filler-line-0161 :: NVKyPqezCxseJo5wxczL5w0D -->
+<!-- filler-line-0162 :: mKMBDlSiBIn67GxNrTiayzan -->
+<!-- filler-line-0163 :: Kx2AzQBjN82PAeKHIOB2shg4 -->
+<!-- filler-line-0164 :: J4K2BoTxyu3md40K3NoTrbWp -->
+<!-- filler-line-0165 :: YR1LWOkodTWfxIuG21LAMpOI -->
+<!-- filler-line-0166 :: OvK32rg6siDnwJnhDmm00xpU -->
+<!-- filler-line-0167 :: KJ9xHH3s67KsxhHC2tBhLbCr -->
+<!-- filler-line-0168 :: TE6eaXq55G9Csh5kHpQbr1VS -->
+<!-- filler-line-0169 :: PG5gceRWVEGqF7ks2WNSXflA -->
+<!-- filler-line-0170 :: KFUqbDTAfqTLInlhHrQzbmtT -->
+<!-- filler-line-0171 :: 839Vm2rikb9KpkfluXBnel25 -->
+<!-- filler-line-0172 :: ReLCapOz5aKZDSq72qSGf8Qo -->
+<!-- filler-line-0173 :: WZB9L3HO5O9FTFNCC77iOvwI -->
+<!-- filler-line-0174 :: afJGydNhA1H6QbqGF9hAQS9h -->
+<!-- filler-line-0175 :: Slne4uaq9mYaL570lzczB9bt -->
+<!-- filler-line-0176 :: vNvTthD9nPGFMxQdArPHDRUV -->
+<!-- filler-line-0177 :: xg696AJlC70duD8ntpcGRqdH -->
+<!-- filler-line-0178 :: fYmn7ryl2ENgXRtLIKs0zwhP -->
+<!-- filler-line-0179 :: 8xXeFoQ8YZ228FYZtgJohTx2 -->
+<!-- filler-line-0180 :: 2c1rpyVxor1sR13mb9QOCU2o -->
+<!-- filler-line-0181 :: waaDGnrn7am6skwGgqWJywbu -->
+<!-- filler-line-0182 :: AyjpbTTGnKktsDo3UreDERiE -->
+<!-- filler-line-0183 :: mjWNF8L5bMHBheB6ujVLst6b -->
+<!-- filler-line-0184 :: YtVML8Lktc4u2csh83iPAyCF -->
+<!-- filler-line-0185 :: Y45orKrC5LoqPStXW0fT8nIG -->
+<!-- filler-line-0186 :: OvlAgcauAqQERK6BrVFlvBDh -->
+<!-- filler-line-0187 :: TkLMO1ohPOP89kAgPsbmJ6fz -->
+<!-- filler-line-0188 :: ksLtncNTNVvgjYQc2DP4Sf0F -->
+<!-- filler-line-0189 :: BTdjvedQBQDiXZybLylkcBnv -->
+<!-- filler-line-0190 :: eZ1fIFVnrEzO6Bw2TwuGnzF4 -->
+<!-- filler-line-0191 :: inzeKw99UBNZHjbkpD9bxAvi -->
+<!-- filler-line-0192 :: 8aiMPKiuMqfu65g9nhGJZIEt -->
+<!-- filler-line-0193 :: MLnW1PkwvdVPzkChaEU5Nr30 -->
+<!-- filler-line-0194 :: EuJAS5ZKj5nmwDcNxzB9mVgg -->
+<!-- filler-line-0195 :: aAEf5ZwONKPeontoHuFnzeAY -->
+<!-- filler-line-0196 :: xXKgs3jBNpnJMgs4Cy4rEXyP -->
+<!-- filler-line-0197 :: JJdH7L2alOHbEZamlKMXtqWX -->
+<!-- filler-line-0198 :: 7McFQIMMu3ok4jw6NRmpWlAy -->
+<!-- filler-line-0199 :: iFa69IZAa7xj9BFIFCPBE9nd -->
+<!-- filler-line-0200 :: FFjyIATKwoU1amwBNMND2sTC -->
+<!-- filler-line-0201 :: xrzGIz2P1rAQ0CcDqMcJ0kcM -->
+<!-- filler-line-0202 :: R21yIHjilKaxcj2YQpSTi9zd -->
+<!-- filler-line-0203 :: Bf1IkiPIkIClsU5muxUuO8Tv -->
+<!-- filler-line-0204 :: Hz6tHgvL6jqRMLmUAvuxrWFQ -->
+<!-- filler-line-0205 :: sBP6tuPQT0pJY16Ys4mKhzzr -->
+<!-- filler-line-0206 :: 3H6GdjWL1xpZBLw3x0gl6Mmf -->
+<!-- filler-line-0207 :: aLjsTzq7EOERH1zXpTHmTo7R -->
+<!-- filler-line-0208 :: JuylW8gmdhAy7RyGLGc4QZ54 -->
+<!-- filler-line-0209 :: ekCUdxjcJogSuBdYe5FfJwQU -->
+<!-- filler-line-0210 :: zTNXwBYQhXMY6Hd72XpucNq2 -->
+<!-- filler-line-0211 :: 9L7GdalLGChDYjYKyXacUppA -->
+<!-- filler-line-0212 :: pV0znXUZKZVnEK565U4DLljU -->
+<!-- filler-line-0213 :: PVrtsBHLDJjq6xDYU944SgY2 -->
+<!-- filler-line-0214 :: PrxJ31JSGAiC5V2UP7ZXnVIj -->
+<!-- filler-line-0215 :: 6sR5TER3LBxYMzReVKF5tWrb -->
+<!-- filler-line-0216 :: eAE9CYBL1sIMKqHRWflFBav2 -->
+<!-- filler-line-0217 :: 12vcPdp0YnNpMxTysq4DpZUN -->
+<!-- filler-line-0218 :: b1PzTTFpPQcJrSAcRByWqLB1 -->
+<!-- filler-line-0219 :: jW7iX6vlkdv04N6L2frbsvcK -->
+<!-- filler-line-0220 :: S8UJoiCMOGemG5tsCa5P0ZeN -->
+<!-- filler-line-0221 :: 46AghcbBBwlHrDkF362FMgo5 -->
+<!-- filler-line-0222 :: JEahwFpMbnjNc21YqYENn7pm -->
+<!-- filler-line-0223 :: heG1ZzVGljx1lDOjptLKdm7F -->
+<!-- filler-line-0224 :: Yhe01VgO00LeIq6VJBdKzv4C -->
+<!-- filler-line-0225 :: tVVUNc3q6bbO0Up7zxZI6Hk3 -->
+<!-- filler-line-0226 :: dpI81HKnGk2MTzfWZf13A1Xh -->
+<!-- filler-line-0227 :: vz6fZsxsh7vOrEO2gCGwJ6Xs -->
+<!-- filler-line-0228 :: 8rqqHjET7pZ9hNBqH0vbJxWy -->
+<!-- filler-line-0229 :: tXtxQpk7YB8CdsZ4onOrNW4Q -->
+<!-- filler-line-0230 :: kPcyRQjFcicFgjJ5q4W8t5HU -->
+<!-- filler-line-0231 :: WP18oNw4npuGSK5LWdwjBSdC -->
+<!-- filler-line-0232 :: 5K3BNiFNNOYy6bRK1XsHDQUE -->
+<!-- filler-line-0233 :: IqylojMdccbHZ0v0Sj5RM9bI -->
+<!-- filler-line-0234 :: iCEQanR0UW6ygYrtHVTWa88E -->
+<!-- filler-line-0235 :: mAsZ7wZmTXrATue7qDqXAz7Q -->
+<!-- filler-line-0236 :: 3tpui6IhTIXPXoiWDBo2ATzR -->
+<!-- filler-line-0237 :: vTcWWNpaJdoRgn5so6hOn5Gv -->
+<!-- filler-line-0238 :: kFb2WA6WpGt5k03BhU5eYoas -->
+<!-- filler-line-0239 :: ruuvsHlMp6sX7ZgVUexPCF2J -->
+<!-- filler-line-0240 :: PSvHFhFJwebv4ogq3iMal2UT -->
+<!-- filler-line-0241 :: CZ7tJLuZz7AaIPeAMzHX2Jvt -->
+<!-- filler-line-0242 :: BrqtT42WAPDrfg60NdL8vOwD -->
+<!-- filler-line-0243 :: K4bUtIOa0dgut1lOKPcT7CXu -->
+<!-- filler-line-0244 :: x93z0PsIRMpxYhtCDVLppT4E -->
+<!-- filler-line-0245 :: uzqA6MNFobKeDFrrCWj9mrHV -->
+<!-- filler-line-0246 :: Jr54pMiwfnnfB7mectuwgaMx -->
+<!-- filler-line-0247 :: ievydNrhbFGYmDrVv6B5z9Ib -->
+<!-- filler-line-0248 :: RbuBPmbX0x1u4Nq1j5jwUGGK -->
+<!-- filler-line-0249 :: hV4OMbYApPDE9zCBUrKvjKj1 -->
+<!-- filler-line-0250 :: fG02zk0yhNDKDT0tiZ90UHHQ -->
+<!-- filler-line-0251 :: NC9bdLIm7zm9qJqoOEesbfEI -->
+<!-- filler-line-0252 :: R3wwwx4ZQec1CVxK8X6LVLJ7 -->
+<!-- filler-line-0253 :: 7osxgvR2kuaRN6J9A5AzGvaO -->
+<!-- filler-line-0254 :: fjSVWZ8FeOXr5qZeNfm1OKhg -->
+<!-- filler-line-0255 :: Eml1qq8ACF3kNmOoFlwkNEQ0 -->
+<!-- filler-line-0256 :: 6LQexV1CnXp86le5DaQ3Bt8w -->
+<!-- filler-line-0257 :: 4tkbp5Cqp8K7TF2NqLXntobz -->
+<!-- filler-line-0258 :: YUiFr3FDMKCJLXUJ5Cgj4vT0 -->
+<!-- filler-line-0259 :: flvr1kgI67kuaTmMcrCeHubL -->
+<!-- filler-line-0260 :: Fw8b9Gtpxamj71OOwta19h1z -->
+<!-- filler-line-0261 :: soKvyRGwYT6LWDRFnOWwEarH -->
+<!-- filler-line-0262 :: M2zx3BjgnU5KY9LFpb6CuQ9M -->
+<!-- filler-line-0263 :: sHmzHmuApOcVITzxCEkSZKBL -->
+<!-- filler-line-0264 :: hYWSnrGemhg9UAjaKudHrZ1f -->
+<!-- filler-line-0265 :: TAIsSEcuvuX5c3OSYGhS8nrq -->
+<!-- filler-line-0266 :: i4soPitTnCkA56ZYVvjBKlKF -->
+<!-- filler-line-0267 :: rOT1xOBeKV3gSwjfPKwzGRN1 -->
+<!-- filler-line-0268 :: cVwMsCxkS3tYstNC4VK7bwBL -->
+<!-- filler-line-0269 :: rqfl1pbs4I85yJoszzU1h5kY -->
+<!-- filler-line-0270 :: tn37gh6OpVg0tlMu7lRX8Bbc -->
+<!-- filler-line-0271 :: mhCisRo0KgDqfyW5PqQMqj6c -->
+<!-- filler-line-0272 :: hD6Em95SNZdeAuothvGJLg6W -->
+<!-- filler-line-0273 :: L7mF4X9KeZyM7yjOsyiaE1tn -->
+<!-- filler-line-0274 :: pLJ3TR0ST5B83uKsqsi77wOW -->
+<!-- filler-line-0275 :: qehQxlV7mKGfp22rCfjPeP4A -->
+<!-- filler-line-0276 :: aazt6TvtA2idh7X2mIVWnWme -->
+<!-- filler-line-0277 :: gcHtvK69uL3rnkAHTrpqLJpa -->
+<!-- filler-line-0278 :: RDzh8DZt9mOMfHXOHiWlLFi8 -->
+<!-- filler-line-0279 :: plk8gkpy3Wa3aYqKf7RGfbGl -->
+<!-- filler-line-0280 :: zZpzZi4d16Nvfvm4QuQqoDgO -->
+<!-- filler-line-0281 :: DOBPFcBeIOWRHI8tS1zfXr0z -->
+<!-- filler-line-0282 :: 660T3rxFiHntDgDcTbLqRWuS -->
+<!-- filler-line-0283 :: GWubJa2tpiIExujDlli5vCVQ -->
+<!-- filler-line-0284 :: BuCbzuZfN1tmuQ7DmIWOL6Iu -->
+<!-- filler-line-0285 :: rbWMvEW1YdNbpw9j7U9G2gkB -->
+<!-- filler-line-0286 :: mXpQjkj9pJUvETv4vFKY5iqY -->
+<!-- filler-line-0287 :: v6ahVJ4DZ73Hd1DlEuRydZZl -->
+<!-- filler-line-0288 :: 4gUXZhDA2ZhZXtKS4fLkg4aD -->
+<!-- filler-line-0289 :: TZatQYd44Qvd2MiK3ZWuEaNt -->
+<!-- filler-line-0290 :: Zr9SATZ5GTar1rgtnz2RfXDa -->
+<!-- filler-line-0291 :: VXdvX6pKN3iYoy0fdL8JU3PM -->
+<!-- filler-line-0292 :: UdiAdWyWjuWOT3s2ELuSEEKB -->
+<!-- filler-line-0293 :: xGrl8p4y5jbqrMryzPISYPNb -->
+<!-- filler-line-0294 :: VGSDJp6eM65pt4RVPFx0sLKK -->
+<!-- filler-line-0295 :: nzY9H0Cj2qAc2ynTysy2kF8k -->
+<!-- filler-line-0296 :: fHP3qc4MLTaSP912MC1E9DqE -->
+<!-- filler-line-0297 :: WJ9Z4XS0EROkjttCtZBuEYj0 -->
+<!-- filler-line-0298 :: WEH7gEDVQDSM66XozZF0nj9e -->
+<!-- filler-line-0299 :: EcvawqKUVVq8YZfDEJX6HxCi -->
+<!-- filler-line-0300 :: tkMoGBGIsd5iF0puORACa0H2 -->
+<!-- filler-line-0301 :: 2CYcFZHLAF7wSjkQkx2UrZYT -->
+<!-- filler-line-0302 :: zHWNBUJtbV72CgHUNdVAnnP8 -->
+<!-- filler-line-0303 :: nOPOfuo3sdTfxFq5D2KKZoO8 -->
+<!-- filler-line-0304 :: l8spTWUBCFVjPgh3HPzsorWA -->
+<!-- filler-line-0305 :: QbTj4vx3dxl5oIm7xNaYj7MT -->
+<!-- filler-line-0306 :: mwpqpUolQm8FeEhXYgX6YNj9 -->
+<!-- filler-line-0307 :: 9QLsMzrDI7jKD7twixdjYlrA -->
+<!-- filler-line-0308 :: oGjXzTVGip0HU9nddDRsys9O -->
+<!-- filler-line-0309 :: cjpM35eFjQTs9bssh4t3rgfR -->
+<!-- filler-line-0310 :: 1e5c4CYJrC5mZmmJ99FP3X89 -->
+<!-- filler-line-0311 :: C9s5npCK0z9f9NCup7OdqKxu -->
+<!-- filler-line-0312 :: LeSjTBkdzkAhOdvryFGXXU3C -->
+<!-- filler-line-0313 :: Vm97r2UzdEafc1sLkWRYItJ0 -->
+<!-- filler-line-0314 :: 28RzPOpiQ64AUNP62f81aCVt -->
+<!-- filler-line-0315 :: S7g7GE6F1AmAzC1590cwbXJh -->
+<!-- filler-line-0316 :: tmWx18xRQfiqeEbeGbIt0NYm -->
+<!-- filler-line-0317 :: rnk9otVpO485MB19OoCpmyTt -->
+<!-- filler-line-0318 :: Lo9DYlax0xUcsk5oAdJnK5TC -->
+<!-- filler-line-0319 :: dazpAgcg1sc5sSiQ3RA5bKci -->
+<!-- filler-line-0320 :: tPjJLvlJSIAPxUTpHOu9GLIh -->
+<!-- filler-line-0321 :: zx6SWsMxcwWgIYUlBlpCnCol -->
+<!-- filler-line-0322 :: 0aBO8zjBeDTTuGaaRwqVjxry -->
+<!-- filler-line-0323 :: qegByQZ2AoLFHvSC6dVY1hh2 -->
+<!-- filler-line-0324 :: 73kCevaz0gUst0clkv56NyBj -->
+<!-- filler-line-0325 :: zVLDVQAHgCRKeEjQw3YHyPxZ -->
+<!-- filler-line-0326 :: ig53EDRBAVsznwC39ZiEBMg5 -->
+<!-- filler-line-0327 :: 6MJBEiWsrS067B4yRJ44EW86 -->
+<!-- filler-line-0328 :: ZgmjTKH9KYsA8tASbif5NXYb -->
+<!-- filler-line-0329 :: xqBGknA9qlzjIKYx1i1FqAAR -->
+<!-- filler-line-0330 :: zyHmmRWca0hExFIiL8n8k2LK -->
+<!-- filler-line-0331 :: ekYOfIKsyD8vgIT2Nj3fLDa0 -->
+<!-- filler-line-0332 :: hvFSbpjmRPDBkbkzExo6K4zS -->
+<!-- filler-line-0333 :: PidDF5Q3vxsQc7MzvEPhhFtt -->
+<!-- filler-line-0334 :: 223C7joCsqs2GvdCGN2akMKF -->
+<!-- filler-line-0335 :: wjTbUZnmYQbeDxZ1ElOIoLLv -->
+<!-- filler-line-0336 :: xmWveJCmVghTtMPUx9mZxg7f -->
+<!-- filler-line-0337 :: IzageBt0EbDHVH1q0q0NG8vc -->
+<!-- filler-line-0338 :: uQhIvf4nXGrY8kGnPLlg6MI1 -->
+<!-- filler-line-0339 :: 0Tue7qYZljP7bHwyfMwhTNAf -->
+<!-- filler-line-0340 :: YZvvbBGxxV3CmoAddgQvM0AU -->
+<!-- filler-line-0341 :: a42mJ3saMFxtwGkE0WmvIIP3 -->
+<!-- filler-line-0342 :: 1TuJtoH10bqBFjDOqzxF1fEa -->
+<!-- filler-line-0343 :: QGjARPgc3u3wv7WJBYpuUuEl -->
+<!-- filler-line-0344 :: ULDwSObbu1CIDVy9C4u4N2u8 -->
+<!-- filler-line-0345 :: ox2NoICWaUnuLaEeFiA4TJK6 -->
+<!-- filler-line-0346 :: TFEp98IZQvxUzBnrIEzXB5tf -->
+<!-- filler-line-0347 :: 41NCpCSemBsb9AP1qaL7W7AL -->
+<!-- filler-line-0348 :: FxI4bCfqUum5la9MSk2uOQ6x -->
+<!-- filler-line-0349 :: KW5t8JKfU1AsumPhFqOKuOjk -->
+<!-- filler-line-0350 :: fbKF9WDV5YVfBj0DxnsbnBga -->
+<!-- filler-line-0351 :: AXjycbyHbzh5pG0c8tbNBjeE -->
+<!-- filler-line-0352 :: x1iAN5hrmegzzI2tgH1hZBcq -->
+<!-- filler-line-0353 :: 4N3ysRI7S86Lb5U4ZWKAhreQ -->
+<!-- filler-line-0354 :: xQGPy7TnbmjSP3y8iCYKmi0G -->
+<!-- filler-line-0355 :: 2hlvv0jnjrGBCBGiiSQF95Cg -->
+<!-- filler-line-0356 :: 25O3Ij5LA0bdBJmisvYj9cno -->
+<!-- filler-line-0357 :: S8MzT4aXq7HklB6UCkBTz7z7 -->
+<!-- filler-line-0358 :: oPatbaU5yMRBqY3VYoxAPqrf -->
+<!-- filler-line-0359 :: h88YqCmEIjIpge2yMMgo3MDS -->
+<!-- filler-line-0360 :: kdzbqdi5H07i2kZATTd5FwDq -->
+<!-- filler-line-0361 :: zif08BzRVXTh5dCL76YdSrZ4 -->
+<!-- filler-line-0362 :: oIQSN97oJxDs1nyYz9y7E7F9 -->
+<!-- filler-line-0363 :: HOwCEraEYRVCL5zg2s5CZB3Q -->
+<!-- filler-line-0364 :: FbwG9HijIX30kRHAk7CFjbKD -->
+<!-- filler-line-0365 :: ebNSL1kI9xDsOnqDSGAZojtq -->
+<!-- filler-line-0366 :: hRVrffTUM9xLBzEJacxMXeVC -->
+<!-- filler-line-0367 :: WxhQoiTU8KkTckDYGxTRXNAd -->
+<!-- filler-line-0368 :: Z3RBD8bTFARJOURdrSCU71Zh -->
+<!-- filler-line-0369 :: qj1aoNzIfwrB3usUQzp5mtp7 -->
+<!-- filler-line-0370 :: mFmGZ5rG2WEtwtChQ9Xdsplf -->
+<!-- filler-line-0371 :: kfCRns7TOxSM3YRUNHeEvQfe -->
+<!-- filler-line-0372 :: e535Dn3UC63oj3TTTRtSEsxE -->
+<!-- filler-line-0373 :: 1VZZq3K2G46f83aeI823h4yR -->
+<!-- filler-line-0374 :: KqqXLgYVRIpm5pwzzx6Ekuai -->
+<!-- filler-line-0375 :: Uqd32etBV7sDTA1raG6HGlqH -->
+<!-- filler-line-0376 :: ReefXOcvy2lkzVQxPJo42e6a -->
+<!-- filler-line-0377 :: GGbQuMuQolbq0CdJKpcGyciP -->
+<!-- filler-line-0378 :: yR7zL3AwhF3VO7XpEHQKn5fr -->
+<!-- filler-line-0379 :: CntZQV3G7TPljzjln2tYHc1v -->
+<!-- filler-line-0380 :: nkHhkS6D8hVNJXM5FycDfo76 -->
+<!-- filler-line-0381 :: rJtdoDPjQpFBVkmyECmPBh2a -->
+<!-- filler-line-0382 :: 1mqr8GeWINFEc7n4NPLRc2fZ -->
+<!-- filler-line-0383 :: cngF484cQrUcxj5h0Ht3qpmg -->
+<!-- filler-line-0384 :: xaKeOEfdeBqOnn8wAVpSnPyI -->
+<!-- filler-line-0385 :: 2wAWYuNFD1S7m0qSXnfSjpFo -->
+<!-- filler-line-0386 :: 1r4BLHmkjp02szFT36qyTLwx -->
+<!-- filler-line-0387 :: OA1nsXt7wNJDA5kjmSq1VuLK -->
+<!-- filler-line-0388 :: fM3CJ9ezPwtGiyLjJsmVdKNO -->
+<!-- filler-line-0389 :: qO6YnZBNjIxI1zCFRc0SaD5Z -->
+<!-- filler-line-0390 :: tQGto9MBxb5YuSvDD7vk7M2L -->
+<!-- filler-line-0391 :: 6zphEzD0kjusisgxvqsURoj3 -->
+<!-- filler-line-0392 :: TIQOG1gdl8GbqoomHcdr1klh -->
+<!-- filler-line-0393 :: GmOp0EPovS3p74c1aOWfk88H -->
+<!-- filler-line-0394 :: jQnjucCUCgN2sw0wHYSOK4zn -->
+<!-- filler-line-0395 :: boo61Jrljzid7oqMfCEapYlp -->
+<!-- filler-line-0396 :: p1M1n8wziguVWl5jSDjaChc9 -->
+<!-- filler-line-0397 :: eC9EXZ3djIhKaW2dYFJm95pA -->
+<!-- filler-line-0398 :: ACow5LNV62ykDjjqZSbPM2G9 -->
+<!-- filler-line-0399 :: xDHEK6mn25asYab0rzKKU1Vw -->
+<!-- filler-line-0400 :: aLSyECpnySX7pqPriSq7zcpl -->
+<!-- filler-line-0401 :: PQWoNZ9RZrANd928PttGgxpy -->
+<!-- filler-line-0402 :: ZgsOj0SQwQv4OpTShgOjMtrL -->
+<!-- filler-line-0403 :: ESL0XAanjr9G8L5us6SSoXFL -->
+<!-- filler-line-0404 :: vBAm0IlOIqUQgKh1pMstDKbX -->
+<!-- filler-line-0405 :: IwBtLpLxbjzSOqQfIWKT49S8 -->
+<!-- filler-line-0406 :: Ly1I05JnylOt7J87SbiBEEOC -->
+<!-- filler-line-0407 :: 0zB4J55XlGW4s6O3AgZthDgC -->
+<!-- filler-line-0408 :: iKxsY4DStqSr1hAqcHpDyhVf -->
+<!-- filler-line-0409 :: wUa9OCCbd4UGXIM3IWHR50aZ -->
+<!-- filler-line-0410 :: pDcwYiTK9uVNUoKP8PkusFmk -->
+<!-- filler-line-0411 :: hQ7ubEGMUcsyGayvwQItk1KF -->
+<!-- filler-line-0412 :: kbpPXAMrB4DxFKrNWpZc3tqV -->
+<!-- filler-line-0413 :: xNCUqafxvxVYI3kGMHylylEX -->
+<!-- filler-line-0414 :: i5wYKqUvsyVtsd88jmVUgi2a -->
+<!-- filler-line-0415 :: jZVGjO5kUcXCVFHt5ofUjFUg -->
+<!-- filler-line-0416 :: 1QM9sl3dvnDR5WPJD4gMCktC -->
+<!-- filler-line-0417 :: z0FqHha1jwHCOWsRf9bmjpx1 -->
+<!-- filler-line-0418 :: LIcPONOn2isuTxDmdodFNveE -->
+<!-- filler-line-0419 :: OwUxadgJkZ99QJDl7pBeeKkt -->
+<!-- filler-line-0420 :: Aoo3nNJonXI38qjRvcP7uirE -->
+<!-- filler-line-0421 :: 5WnEw4asoPjCI1kkSCgO5upS -->
+<!-- filler-line-0422 :: tLQ7cu2eqE5ZDZCxH7ZEeHhd -->
+<!-- filler-line-0423 :: RlJUmFBzS7wpauFLQBauYLOh -->
+<!-- filler-line-0424 :: Cmt87ujJZuWXi8jAIPb4YevQ -->
+<!-- filler-line-0425 :: hVuGWhbvih3PS5eht2N6qlrU -->
+<!-- filler-line-0426 :: TQVMrk51foDGNDStuhoDY2bY -->
+<!-- filler-line-0427 :: CGUTZ56KuGx3Dift9A2GNfPt -->
+<!-- filler-line-0428 :: 250Sao73Xk49GAU2YFjRISBm -->
+<!-- filler-line-0429 :: Ey3WN253DWU02CyoP8DmaE9I -->
+<!-- filler-line-0430 :: EK2InsfsTZm1h0itWcmMJKDY -->
+<!-- filler-line-0431 :: Y3rkCp9afUXaf92CAISPNQme -->
+<!-- filler-line-0432 :: cN1co6h3Nc0HKGMfp6g2bvUE -->
+<!-- filler-line-0433 :: VX9opoQz1q1HROG6sPKhiaKk -->
+<!-- filler-line-0434 :: 5zhRKMKZxO5uokLSrwZtBJNo -->
+<!-- filler-line-0435 :: aGad62RiCuR0TMzQ3EsEzjwc -->
+<!-- filler-line-0436 :: uJnFuShkdp79bEvwvONvj6a3 -->
+<!-- filler-line-0437 :: JId7LzKqvi0wRoGL2rqKJfeA -->
+<!-- filler-line-0438 :: wLXE06lpp9OfEplY9WLszqWn -->
+<!-- filler-line-0439 :: 9xvoWUIsWh6GXcMrvEj6zsjA -->
+<!-- filler-line-0440 :: LCd7jsGf9EWZMhQJcpPMtjR5 -->
+<!-- filler-line-0441 :: 4gVSkPHl7vVE5o1hObKNaJQW -->
+<!-- filler-line-0442 :: fkFlL4bxweWpDV30DXI3OvQY -->
+<!-- filler-line-0443 :: yPSBcOvHSzKC9GFNiK0sGTeC -->
+<!-- filler-line-0444 :: eJTCDvn47ODLeuIsOlCXSCOF -->
+<!-- filler-line-0445 :: 2SaVQJqnq8exrA7S9e2Jl8wU -->
+<!-- filler-line-0446 :: ug91GbSkEkShACCvioYOWzwH -->
+<!-- filler-line-0447 :: vKXav5NmbzNQgRe0SQ4zXwVW -->
+<!-- filler-line-0448 :: Envrx23AQSnJYzCKgrcn497V -->
+<!-- filler-line-0449 :: WHCdpVzOkEne7V7EMSn40K8i -->
+<!-- filler-line-0450 :: WaV2biRNeH71YqZMQ6o4D590 -->
+<!-- filler-line-0451 :: J1vihrNac187gGLf0yRlZMJ3 -->
+<!-- filler-line-0452 :: 9GKzIFcVctKAHpLlomzwi2cK -->
+<!-- filler-line-0453 :: mKzi6FQYv17Z7So9Vj4Lx3Hz -->
+<!-- filler-line-0454 :: U7IBnIvUOZLuekbTxs4SrmSk -->
+<!-- filler-line-0455 :: 6himjlDilqUUFeuumoWKfH6p -->
+<!-- filler-line-0456 :: Y9FhltvJy31vKv8NOQuH8aFu -->
+<!-- filler-line-0457 :: nmh3wm0QgAA66uSRGQIatQ2U -->
+<!-- filler-line-0458 :: xY5jG7Bac6CbY2AxNUHFE3Qv -->
+<!-- filler-line-0459 :: nQQTl1Rkxd6w41c7L8KKSj4N -->
+<!-- filler-line-0460 :: 5a7r7gXkOpoFDsEvGSn0jlAI -->
+<!-- filler-line-0461 :: LOXZxSWd9FwaBzdbh4LnhVlb -->
+<!-- filler-line-0462 :: iaOoKH55rOVz1CCkFjXtZhgx -->
+<!-- filler-line-0463 :: zTmjR1xUDTCTWbT1YPe25mX5 -->
+<!-- filler-line-0464 :: lG8yGMrwMygv46II8MvfM89O -->
+<!-- filler-line-0465 :: IAnNYNP7ASZ2jLw31hxKokMa -->
+<!-- filler-line-0466 :: KB0LHHECOu4paSgKqIDhtIFL -->
+<!-- filler-line-0467 :: UNJ3VLUlfHr4bCObUEEBhtCf -->
+<!-- filler-line-0468 :: DkwuVrEDjKzMrgHllsOQbEwB -->
+<!-- filler-line-0469 :: SIlvAnYjl21m6hcESx6gCI06 -->
+<!-- filler-line-0470 :: ZsI6RNSqM67xsLTGIxqUGMY0 -->
+<!-- filler-line-0471 :: mL0RADIoHAoQxdhVqcJEmjDJ -->
+<!-- filler-line-0472 :: xwuVfU9s49qkELlGlUZmEX17 -->
+<!-- filler-line-0473 :: F1f50XErGhxeXAOuPZG5wvS3 -->
+<!-- filler-line-0474 :: ADTIS0JvhOeW3bEjsUWlcYlv -->
+<!-- filler-line-0475 :: pkghrTyXODarWjRaICMo2rax -->
+<!-- filler-line-0476 :: iMGUg9kGTiXEMcEE6NlQyEo7 -->
+<!-- filler-line-0477 :: vtiEQTQKH4Wqxb2oh4eCq7Xy -->
+<!-- filler-line-0478 :: tBORDNaTxJwLNZBJ5Sl8cmnt -->
+<!-- filler-line-0479 :: ScLp77t73JBQKIVuN4yGcWAk -->
+<!-- filler-line-0480 :: llPMs7GEFQ9Zp8LNVciPwZQW -->
+<!-- filler-line-0481 :: YANIuTCTlJfG5uaOlnN8pNjY -->
+<!-- filler-line-0482 :: Bbr8Kc9nhNWGKFZShJH6gvQC -->
+<!-- filler-line-0483 :: aSww2voUqyEU61R18MDVCII6 -->
+<!-- filler-line-0484 :: WqhvCW22HQYZja1VWXs0hW8J -->
+<!-- filler-line-0485 :: n0ilnOvYgRSvWrYqayJ5hvUn -->
+<!-- filler-line-0486 :: P86j3C4Oa4GQrv4O39YGZsLV -->
+<!-- filler-line-0487 :: PTGl8cbC5aCPAurdl6Ka2NE0 -->
+<!-- filler-line-0488 :: nfJi5vJ57dbglDVXbHdK2YD2 -->
+<!-- filler-line-0489 :: WrZvMuwoFVqkATHu63Z2ZVUX -->
+<!-- filler-line-0490 :: DecXIdAfqZK1MnXBtWgucC7u -->
+<!-- filler-line-0491 :: bmjZJAFkGclDW4QZrmnaC64z -->
+<!-- filler-line-0492 :: 1ehhq1yQseCS84dZG191uu1y -->
+<!-- filler-line-0493 :: qfEQfjdHXLL1i0N2RPa1q5AW -->
+<!-- filler-line-0494 :: H2RI4KlNPIxQmMojZUKiobXx -->
+<!-- filler-line-0495 :: 1kycIOL8ggQiHNKNK9bPPNiu -->
+<!-- filler-line-0496 :: BeF8jSeyVoBpxwlDuuCX4pVX -->
+<!-- filler-line-0497 :: UqT59196ydcsdcsUTmuvFk07 -->
+<!-- filler-line-0498 :: x6Xv0crO6x37j1Gf9O7RHu0u -->
+<!-- filler-line-0499 :: XhzXwiwUfjeneitkmQlwbHhg -->
+<!-- filler-line-0500 :: XylDiaeVbAcVAn3DtIsTQQmC -->
+<!-- filler-line-0501 :: SJwKIFHGbgPlt2uRJUr6taeV -->
+<!-- filler-line-0502 :: nwuFIil6dWnUCAdwybWIWVnV -->
+<!-- filler-line-0503 :: JbUyrO8yENA1xkhUJo9HyPq6 -->
+<!-- filler-line-0504 :: ZdeRsT0rArrubpFKK54FFkMS -->
+<!-- filler-line-0505 :: 7C5yyEdXRrAWj7ScbSl7ghEf -->
+<!-- filler-line-0506 :: q26DHxqUUk4KQYMDUJP6H0YW -->
+<!-- filler-line-0507 :: gG0kYcffbgh7EO1gP1ztWAVG -->
+<!-- filler-line-0508 :: 7rjGVlA2unXCZgi93iKO0NXC -->
+<!-- filler-line-0509 :: ruYeSr6tHK1csJbjaZonJIPz -->
+<!-- filler-line-0510 :: NXi6UFpvp1fKfweLq0Z0Vbdw -->
+<!-- filler-line-0511 :: EbURLp3LYBJWy5eg5RemFBBO -->
+<!-- filler-line-0512 :: JgbiCQDhyOUEdM8UYWIFlcf1 -->
+<!-- filler-line-0513 :: CTUt46leeORcLSeaiVYMKrYL -->
+<!-- filler-line-0514 :: VtzapK788uKFEeUTm0WoA9Oe -->
+<!-- filler-line-0515 :: XiByBeOt6hdrWVhlaA6LN6nT -->
+<!-- filler-line-0516 :: BAkEkS8S4Dc0V5Gg7id35XOs -->
+<!-- filler-line-0517 :: SgyeE55soSakfawqqYlEkugl -->
+<!-- filler-line-0518 :: r8hSfqh5n3m301sqSsPZeh8C -->
+<!-- filler-line-0519 :: 6OI03XaNVlyMU3tjzRLKlvm0 -->
+<!-- filler-line-0520 :: SwcUDkKQq1ZcGLBcIWRAcqIn -->
+<!-- filler-line-0521 :: h8tXNJRjrIqcGjNJTj1vbCED -->
+<!-- filler-line-0522 :: ExBxq2ubXuH4Zo8aI44TRSPz -->
+<!-- filler-line-0523 :: 3titN4J9gYmrF4Ot3wTBjfwV -->
+<!-- filler-line-0524 :: JCcO7LAyMScVthEgG0XPycir -->
+<!-- filler-line-0525 :: HuFvxFLQkFQN1F62StO1iTEo -->
+<!-- filler-line-0526 :: VunzoWWCiuJCjKgldnr93hMi -->
+<!-- filler-line-0527 :: GcBwWYooZvClc2Iw5puR51o4 -->
+<!-- filler-line-0528 :: vDYgqPf2zgL2CAAoBM2SmdsK -->
+<!-- filler-line-0529 :: kin50ft0Epv158KGLslx4Ll7 -->
+<!-- filler-line-0530 :: JfavzmIKXRKEwbyvKVbXBkdM -->
+<!-- filler-line-0531 :: r3HSNdSqkvmZyYSYJCm52tVP -->
+<!-- filler-line-0532 :: UaLu6LKKQf5VEnovkVlz926y -->
+<!-- filler-line-0533 :: drxHV0Addcl2ANMbWRZjtStY -->
+<!-- filler-line-0534 :: v6YTQDaBLtngJLA2O3A9ldtB -->
+<!-- filler-line-0535 :: w6E1KY5dMMHpgasfVDQbDsdT -->
+<!-- filler-line-0536 :: nOiInpVNXAmeSJgtMYlBvsAZ -->
+<!-- filler-line-0537 :: NgJpWpXJHhdK5KeSE9UVV1rK -->
+<!-- filler-line-0538 :: hsTTTxOonSvOZGUUFYlwEGud -->
+<!-- filler-line-0539 :: OVibb1PrtCXqIVPz4sx1qgiD -->
+<!-- filler-line-0540 :: ZuyzEU16VGaregFXSHtSwn9b -->
+<!-- filler-line-0541 :: hBwg9VF6JhyK0wZgY3cyw6U2 -->
+<!-- filler-line-0542 :: icivyNu12Ifh3lnGnHdMy5kV -->
+<!-- filler-line-0543 :: Yk9Or3hzYOe43xZXuYkWcxNG -->
+<!-- filler-line-0544 :: VILviFptsTqgsjYovlFG93T9 -->
+<!-- filler-line-0545 :: 56YpiVPvnzw61lLFgfAYXvca -->
+<!-- filler-line-0546 :: eZLjgi0G0k4J0LiaWBFeizlR -->
+<!-- filler-line-0547 :: 8RMyM4ZfGB28WgqnT9TgrYWy -->
+<!-- filler-line-0548 :: cUvOcrLyfkMgbOknSeTomel8 -->
+<!-- filler-line-0549 :: rekG6VrEUn4EcE2B6QHB7sLU -->
+<!-- filler-line-0550 :: vUYOMIHA9LYisMCm6dQxwDFb -->
+<!-- filler-line-0551 :: hfdsk0CbNTAVTzpLiVHPC7j4 -->
+<!-- filler-line-0552 :: rDoB4XwZ6WxTo1A1mNXBXewy -->
+<!-- filler-line-0553 :: yaQvCVSAv70RqbJhgpee43WH -->
+<!-- filler-line-0554 :: A9QIyd1HZokcpjpbZF7kkNIv -->
+<!-- filler-line-0555 :: xnOJQ2c4LGjDv1Bk25DSLUBT -->
+<!-- filler-line-0556 :: nXvStZOdFAn31hkaO2Zujdv9 -->
+<!-- filler-line-0557 :: ix9gx4FoxiOUAeTKIgvezqll -->
+<!-- filler-line-0558 :: V3csCI1K3Bm1h2YKVVicKtvf -->
+<!-- filler-line-0559 :: UGI7R0DYhIbHp02kUoIITiXS -->
+<!-- filler-line-0560 :: jTm3sI5vzMqTMW1nOOCYJs1c -->
+<!-- filler-line-0561 :: FcpXgJn2w8JLpbaYb6JHN7YV -->
+<!-- filler-line-0562 :: 4idRTRskjj27todRMtD8tEhQ -->
+<!-- filler-line-0563 :: caQjtUWJKAl7v3CHit80Hf5d -->
+<!-- filler-line-0564 :: i5RfgykvpoRfbDILHU74oMfe -->
+<!-- filler-line-0565 :: XnDTIk53l0AOwAJ0vUk7n9A0 -->
+<!-- filler-line-0566 :: eAcDphc0JfqdXNiKxxmeGGvJ -->
+<!-- filler-line-0567 :: QeBzaaejZCPXEtPqLbb1hoRU -->
+<!-- filler-line-0568 :: EWyoAsGy8PiOkXTl8od0KadJ -->
+<!-- filler-line-0569 :: zH6sZNNJLyH1kE8p8FkiYxTN -->
+<!-- filler-line-0570 :: PpajVaViMw4goqqREeKUuDlL -->
+<!-- filler-line-0571 :: UFm4N7ZepxIL9pX6UyNbha7d -->
+<!-- filler-line-0572 :: y2ipDNQk4DUOsl9cPKnuDnKT -->
+<!-- filler-line-0573 :: 4wM0YIBYS2nGrZ3pexPicQv1 -->
+<!-- filler-line-0574 :: xTfI7JNIo583F5pZg3Li5FkN -->
+<!-- filler-line-0575 :: 1QWkwoJeVYHvJ3yFXa6tbhYg -->
+<!-- filler-line-0576 :: qsElJ46aBUXJZnUOgGwAXl5d -->
+<!-- filler-line-0577 :: Es9Q1vVoH86h3dMzNoTz45hM -->
+<!-- filler-line-0578 :: swLZF8hOtqu5Ub2jcdq4uW6I -->
+<!-- filler-line-0579 :: VMoga24WvejQTnW8D2SxP9ZF -->
+<!-- filler-line-0580 :: aaZsVSSXHnF6kSXpzvLqzQ1i -->
+<!-- filler-line-0581 :: jEHZS4at9lAJVBfJgJOmBJux -->
+<!-- filler-line-0582 :: Q6TncMj9wZIHtjNt3g1zW719 -->
+<!-- filler-line-0583 :: 5W9BOaNHayVBei9rn4LGpMwF -->
+<!-- filler-line-0584 :: WUl0msKHuql6HyO87LMSFq5q -->
+<!-- filler-line-0585 :: M4DyrvLd1OJkTJWwW1SLhq1p -->
+<!-- filler-line-0586 :: bnIRIuH12lMfwnjDvrdjrtsf -->
+<!-- filler-line-0587 :: 7HGXJLoVsDFTLO5w5JAfN3Qd -->
+<!-- filler-line-0588 :: fFPA1MWY21nSNFyj0DPln1lM -->
+<!-- filler-line-0589 :: j4yhCDfDeNSbXd0GzKna5vzC -->
+<!-- filler-line-0590 :: vJGlv11s3fmvdykN4GREBuzL -->
+<!-- filler-line-0591 :: TDuHeEOmOClKn2UtX7v9aFT6 -->
+<!-- filler-line-0592 :: 7HEutJc6YlvSNPr3qzcZgPk8 -->
+<!-- filler-line-0593 :: QUdKUa7YkzLM4IflwnhYMty6 -->
+<!-- filler-line-0594 :: 9xHj8zTKP2rAVDkp7DBkMdMh -->
+<!-- filler-line-0595 :: jBBmZZCysYFxh5iqcLYWYLFu -->
+<!-- filler-line-0596 :: bARv26OHg2axBA90ehTb9WkT -->
+<!-- filler-line-0597 :: uIWOjHTnMWeuyR35ux9xUlgj -->
+<!-- filler-line-0598 :: 0MM6nFqp2P4z47d8Bpam5BNB -->
+<!-- filler-line-0599 :: XskLgtUVzCGWZx1LqJzp4z72 -->
+<!-- filler-line-0600 :: kbMHwUXnX3UmFYnWsaNNwnCG -->
+<!-- filler-line-0601 :: 7vJ0B9iBvf8IUPy1h95Y4g7l -->
+<!-- filler-line-0602 :: luSaHcihEesXqg9oCkCV83G7 -->
+<!-- filler-line-0603 :: LXJs6GXekPtlxFK7XrdYzgpC -->
+<!-- filler-line-0604 :: 78uM14gFdFBOHEhK4cPrsd9n -->
+<!-- filler-line-0605 :: 1If3eHjFRFh9fDWIi3lvItNw -->
+<!-- filler-line-0606 :: q1BdfRDgCAhnsww0Xqvz9Lln -->
+<!-- filler-line-0607 :: nIxVxWaTnbYEh1nA3t4u0ZrN -->
+<!-- filler-line-0608 :: ys4eim3R0sDaRxnYGpF7Hc9f -->
+<!-- filler-line-0609 :: v4aWXpF3WafIHGhPiZibppaY -->
+<!-- filler-line-0610 :: YWU7pOlAtgbH1rMXLy7BSA2z -->
+</body>
+</html>
